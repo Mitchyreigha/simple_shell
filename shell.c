@@ -1,32 +1,53 @@
 #include "main.h"
+
 /**
- * prog_exec - It executes the command read from read_input using execve
- * @args: pointer to the command token read by read_input
+ * execute_command - Executes the command using execve
+ * @command: The command to execute
+ * @args: The arguments for the command
+ */
+void execute_command(char *command, char **args)
+{
+	if (execve(command, args, environ) == -1)
+	{
+		perror("execve error");
+		exit(EXIT_FAILURE);
+	}
+}
+
+/**
+ * prog_exec - It executes the command read from read_input
+ * @args: Pointer to the command tokens read by read_input
  */
 void prog_exec(char **args)
 {
 	pid_t pid;
 	int status;
-	char *full_path;
-
+	char *command = args[0];
+	char *full_path = NULL;
 
 	pid = fork();
 	if (pid < 0)
+	{
 		perror("Fork Failed");
-
+	}
 	else if (pid == 0)
 	{
-		full_path = get_full_path(args[0]);
-		if (full_path == NULL)
+		if (strchr(command, '/') != NULL)
 		{
-			fprintf(stderr, "%s: command not found\n", args[0]);
-			exit(EXIT_FAILURE);
+			/*cExecute the command directly if it's a full path */
+			execute_command(command, args);
 		}
-		if (execve(full_path, args, environ) == -1)
+		else
 		{
-			perror("execve error");
+			/* Try to find the full path for the command */
+			full_path = get_full_path(command);
+			if (full_path == NULL)
+			{
+				fprintf(stderr, "%s: command not found\n", command);
+				exit(EXIT_FAILURE);
+			}
+			execute_command(full_path, args);
 			free(full_path);
-			exit(EXIT_FAILURE);
 		}
 	}
 	else
@@ -147,13 +168,4 @@ int run_shell(void)
 	}
 	free(input);
 	return (0);
-}
-/**
- * main - the beginning of the program execution
- * Return: 0 Always Success
- */
-int main(void)
-{
-	run_shell();
-	return (EXIT_SUCCESS);
 }
