@@ -34,7 +34,7 @@ void prog_exec(char **args)
 	{
 		if (strchr(command, '/') != NULL)
 		{
-			/*cExecute the command directly if it's a full path */
+			/* Execute the command directly if it's a full path */
 			execute_command(command, args);
 		}
 		else
@@ -124,48 +124,46 @@ int read_input(char *input, char **args)
 }
 
 /**
- * run_shell - creates the shell and execute commands
- * Return: EXIT_SUCCESS;
+ * handle_command - Handle the execution of commands (including built-ins)
+ * @input: User input
+ * @args: Command and arguments
  */
-
-int run_shell(void)
+void handle_command(char *input, char **args)
 {
-	char *input = NULL;
-	char *args[MAX_ARGS];
-	int argc;
-	size_t input_size = 0;
+	int argc = read_input(input, args);
 
-	while (1)
+	if (argc > 0 && strcmp(args[0], "exit") == 0)
 	{
-		printf(PROMPT);
-		if (getline(&input, &input_size, stdin) == -1)
-		{
-			printf("\n");
-			break;
-		}
-		argc = read_input(input, args);
-		if (argc > 0 && strcmp(args[0], "exit") == 0)
-			break;
-		else if (argc > 0 && strcmp(args[0], "cd") == 0)
-		{
-			if (argc < 2)
-				fprintf(stderr, "cd: expected argument\n");
-			else if (chdir(args[1]) != 0)
-				perror("cd error");
-		}
-		else if ((argc > 0) && (strcmp(args[0], "list") == 0
-					|| strcmp(args[0], "display") == 0))
-		{
-			if (argc < 2)
-				fprintf(stderr, "%s: expected argument\n", args[0]);
-			else if (strcmp(args[0], "list") == 0)
-				list_directory_contents(args[1]);
-			else if (strcmp(args[0],  "display") == 0)
-				display_file_content(args[1]);
-		}
-		else
-			prog_exec(args);
+		/* Handle the 'exit' command */
+		exit(EXIT_SUCCESS);
 	}
-	free(input);
-	return (0);
+	else if (argc > 0 && strcmp(args[0], "cd") == 0)
+	{
+		/*  Handle the 'cd' command */
+		if (argc < 2)
+			fprintf(stderr, "cd: expected argument\n");
+		else if (chdir(args[1]) != 0)
+			perror("cd error");
+	}
+	else if ((argc > 0) && (strcmp(args[0], "list") == 0
+				|| strcmp(args[0], "display") == 0))
+	{
+		/* Handle the 'list' and 'display' commands */
+		if (argc < 2)
+			fprintf(stderr, "%s: expected argument\n", args[0]);
+		else if (strcmp(args[0], "list") == 0)
+			list_directory_contents(args[1]);
+		else if (strcmp(args[0], "display") == 0)
+			display_file_content(args[1]);
+	}
+	else if (argc > 0 && strcmp(args[0], "env") == 0)
+	{
+		/* Handle the 'env' command */
+		print_environment();
+	}
+	else
+	{
+		/* Execute other commands using prog_exec */
+		prog_exec(args);
+	}
 }

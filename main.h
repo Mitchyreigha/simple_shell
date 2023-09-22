@@ -9,10 +9,14 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <errno.h>
 
 #define MAX_INPUT_LENGTH 1024
+#define BUFFER_SIZE 1024
 #define MAX_ARGS 64
+
 #define PROMPT "CisFun:$ "
+
 
 extern char **environ;
 
@@ -22,5 +26,9 @@ int run_shell(void);
 char *get_full_path(char *command);
 void display_file_content(const char *file_path);
 void list_directory_contents(const char *dir_path);
+void execute_command(char *command, char **args);
+void print_environment(void);
+void handle_command(char *input, char **args);
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
 
 #endif
